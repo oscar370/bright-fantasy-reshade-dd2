@@ -52,15 +52,6 @@ patch_longexposure() {
 
 write_notes() {
   {
-    echo "## Installation"
-    echo
-    echo "1. Extract the zip into the game folder."
-    echo "2. Install ReShade with the preset."
-    echo "3. Launch the game and select the preset."
-    echo
-    echo "**Linux/Proton:** install Microsoft's \`d3dcompiler_47\` in the prefix"
-    echo "(\`protontricks 2054970 d3dcompiler_47\`)"
-    echo
     echo "## Included versions"
     echo
     echo "| Pack | Commit |"
