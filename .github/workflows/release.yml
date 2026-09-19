@@ -1,0 +1,44 @@
+name: Build release
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["package/**", "build.sh"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build package
+        run: ./build.sh
+
+      - name: Check for pack changes
+        id: diff
+        run: |
+          if [ -f versions.txt ] && diff -q versions.txt dist/versions.txt > /dev/null; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release
+        if: github.event_name != 'schedule' || steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$(date -u +%Y.%m.%d-%H%M)"
+          cp dist/versions.txt versions.txt
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add versions.txt
+          git diff --cached --quiet || git commit -m "Update pack versions ($TAG)"
+          git push
+          gh release create "$TAG" dist/*.zip --title "$TAG" --notes-file dist/notes.md
